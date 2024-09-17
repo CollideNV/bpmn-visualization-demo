@@ -1,5 +1,8 @@
 [BPMN](bpmn/recruitment_process.bpmn)
 
+![BPMN Diagram](images/diagram.svg)
+
+
 
 ### Overzicht van de GitHub Actions Workflow
 
