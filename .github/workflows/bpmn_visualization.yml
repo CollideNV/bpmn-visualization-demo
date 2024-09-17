@@ -1,0 +1,86 @@
+name: Generate BPMN SVG and Update README
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  generate-svg:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Find BPMN file path in README
+        id: find_bpmn
+        run: |
+          # Zoek naar een BPMN-bestand link in README.md, bijvoorbeeld [BPMN](path/to/file.bpmn)
+          BPMN_PATH=$(grep -oP '(?<=\]\().+\.bpmn(?=\))' README.md | head -n 1)
+          echo "bpmn_path=$BPMN_PATH" >> $GITHUB_OUTPUT
+          if [ -z "$BPMN_PATH" ]; then
+            echo "Geen BPMN-bestand gevonden in README."
+            exit 1
+          fi
+
+      - name: Generate SVG from BPMN via Kroki
+        env:
+          BPMN_PATH: ${{ steps.find_bpmn.outputs.bpmn_path }}
+        run: |
+          # Controleer of het BPMN-bestand bestaat
+          if [ ! -f "$BPMN_PATH" ]; then
+            echo "Het BPMN-bestand '$BPMN_PATH' bestaat niet."
+            exit 1
+          fi
+
+          # Gebruik de Kroki API om het BPMN-diagram om te zetten naar SVG
+          curl -X POST \
+            -H "Content-Type: text/plain" \
+            --data-binary "@$BPMN_PATH" \
+            https://kroki.io/bpmn/svg \
+            --output diagram.svg
+
+          # Controleer of de SVG correct is gegenereerd
+          if [ ! -f diagram.svg ]; then
+            echo "Fout bij het genereren van diagram.svg via Kroki."
+            exit 1
+          fi
+
+      - name: Update README with SVG
+        run: |
+          # Definieer het pad naar de afbeelding, bijvoorbeeld 'images/diagram.svg'
+          IMAGE_PATH="images/diagram.svg"
+
+          # Maak de images directory als deze nog niet bestaat
+          mkdir -p images
+
+          # Verplaats de gegenereerde SVG naar de images directory
+          mv diagram.svg "$IMAGE_PATH"
+
+          # Controleer of de sectie "## BPMN Diagram" al bestaat
+          if grep -q "## BPMN Diagram" README.md; then
+            # Verwijder alles na "## BPMN Diagram" om de afbeelding te vervangen
+            # Gebruik awk om de sectie bij te werken
+            awk '/## BPMN Diagram/ {print; print ""; print "![BPMN Diagram]('"$IMAGE_PATH"')"; exit} {print}' README.md > README_temp.md
+            mv README_temp.md README.md
+          else
+            # Voeg de "## BPMN Diagram" sectie toe met de SVG afbeelding
+            echo -e "\n## BPMN Diagram\n\n![BPMN Diagram]($IMAGE_PATH)" >> README.md
+          fi
+
+      - name: Commit changes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/diagram.svg README.md
+          git commit -m "Generate BPMN diagram SVG and update README [skip ci]" || echo "Geen wijzigingen om te committen"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
