@@ -27,5 +27,3 @@ De workflow voert de volgende stappen uit telkens wanneer er een push of pull re
 
 4. **Bijwerken van de README.md**:
    - Controleert of de sectie "## BPMN Diagram" al bestaat in de `README.md`.
-
-![BPMN Diagram](images/diagram.svg)
