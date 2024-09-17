@@ -1,12 +1,5 @@
 [BPMN](bpmn/recruitment_process.bpmn)
 
-![BPMN Diagram](images/diagram.svg)
-
-
-![BPMN Diagram](images/diagram.svg)
-
-
-
 ### Overzicht van de GitHub Actions Workflow
 
 Deze repository maakt gebruik van een GitHub Actions workflow om automatisch een visuele representatie van het BPMN (Business Process Model and Notation) diagram te genereren en toe te voegen aan de `README.md`. Hierdoor blijft de documentatie up-to-date zonder handmatige tussenkomst.
