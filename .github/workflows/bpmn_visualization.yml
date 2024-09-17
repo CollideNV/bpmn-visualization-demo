@@ -61,16 +61,31 @@ jobs:
           # Verplaats de gegenereerde SVG naar de images directory
           mv diagram.svg "$IMAGE_PATH"
 
-          # Controleer of de sectie "## BPMN Diagram" al bestaat
-          if grep -q "## BPMN Diagram" README.md; then
-            # Verwijder alles na "## BPMN Diagram" om de afbeelding te vervangen
-            # Gebruik awk om de sectie bij te werken
-            awk '/## BPMN Diagram/ {print; print ""; print "![BPMN Diagram]('"$IMAGE_PATH"')"; exit} {print}' README.md > README_temp.md
-            mv README_temp.md README.md
-          else
-            # Voeg de "## BPMN Diagram" sectie toe met de SVG afbeelding
-            echo -e "\n## BPMN Diagram\n\n![BPMN Diagram]($IMAGE_PATH)" >> README.md
+          # Check if README.md exists
+          if [ ! -f README.md ]; then
+            echo "README.md niet gevonden."
+            exit 1
           fi
+
+          # Insert the image at the top of README.md after the first header
+          # Assumes the first line is a header (e.g., # Project Title)
+          # Creates a temporary file to store the updated README
+          {
+            # Read the first line (header)
+            read -r first_line
+            echo "$first_line"
+            
+            # Insert the BPMN Diagram image
+            echo ""
+            echo "![BPMN Diagram]($IMAGE_PATH)"
+            echo ""
+            
+            # Append the rest of the README
+            cat
+          } < README.md > README_temp.md
+
+          # Replace the original README with the updated one
+          mv README_temp.md README.md
 
       - name: Commit changes
         run: |
