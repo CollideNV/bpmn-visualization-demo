@@ -3,6 +3,9 @@
 ![BPMN Diagram](images/diagram.svg)
 
 
+![BPMN Diagram](images/diagram.svg)
+
+
 
 ### Overzicht van de GitHub Actions Workflow
 
